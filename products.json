@@ -1,0 +1,141 @@
+{ "products": {
+  "product": [
+  {	"name": "potato",
+    "category": "Fruits and Vegetables",
+    "info": "This price is for 1 kg of potato.",
+    "price": 60
+
+  },
+
+  { "name": "tomato", 
+    "category": "Fruits and Vegetables",
+    "info": "This price is for 1 kg of tomato.",
+    "price": 90
+
+  },
+
+  { "name": "cucumber",
+    "category": "Fruits and Vegetables",
+    "info": "This price is for 1 kg of cucumber.",
+    "price": 70
+
+  },
+
+  { "name": "apple",
+    "category": "Fruits and Vegetables",
+    "info": "This price is for 1 kg of apple.",
+    "price": 70
+  },
+
+  { "name": "orange",
+    "category": "Fruits and Vegetables",
+    "info": "This price is for 1 kg of orange.",
+    "price": 80
+
+  },
+
+  { "name": "banana",
+    "category": "Fruits and Vegetables",
+    "info": "This price is for 1 kg of banana.",
+    "price": 65
+
+  },
+
+  { "name": "black bread",
+    "category": "Bakery",
+    "info": "This price is for 1 bread.",
+    "price": 40
+  },
+
+  { "name": "baget",
+    "category": "Bakery",
+    "info": "This price is for 1 baget.",
+    "price": 45
+
+  },
+
+  { "name": "candy Alenka",
+    "category": "Confectionery",
+    "info": "In one packege 500 g of sweets.",
+    "price": 150
+  },
+
+  { "name": "rice",
+    "category": "Grits",
+    "info": "In one package 500 g of rice.",
+    "price": 60
+  },
+
+  { "name": "сhicken",
+    "category": "Meat",
+    "info": "This price is for 1 kg of chicken.",
+    "price": 220
+  },
+
+  { "name": "pork",
+    "category": "Meat",
+    "info": "This price is for 1 kg of pork.",
+    "price": 370
+  },
+
+  { "name": "salmon",
+    "category": "Fish",
+    "info": "This price is for 1 kg of salmon.",
+    "price": 520
+  },
+
+  { "name": "milk",
+    "category": "Milk",
+    "info": "In one package 500 ml of milk.",
+    "price": 60
+  },
+
+  { "name": "kefir",
+    "category": "Milk",
+    "info": "In one package 400 ml of kefir.",
+    "price": 55
+  },
+
+  { "name": "karry",
+    "category": "Spice",
+    "info": "In one package 50 g of karry.",
+    "price": 20
+  },
+
+  { "name": "hercules",
+    "category": "Grits",
+    "info": "In one package 500 g of hercules.",
+    "price": 60
+  },
+
+  { "name": "beef",
+    "category": "Meat",
+    "info": "This price is for 1 kg of beef.",
+    "price": 350
+  },
+
+  { "name": "cake with raspberrry",
+    "category": "Bakery",
+    "info": "In one package 5 pieces of cake.",
+    "price": 80
+  },
+
+  { "name": "blueberry muffins",
+    "category": "Bakery",
+    "info": "In one package 7 pieces of muffins.",
+    "price": 130
+  },
+
+
+  { "name": "apple paste",
+    "category": "Confectionery",
+    "info": "In one package 1 kg of apple paste.",
+    "price": 90
+  },
+
+  { "name": "pink marshmallow",
+    "category": "Confectionery",
+    "info": "In one package 500 g of pink marshmallow.",
+    "price": 120
+  }
+]}}
