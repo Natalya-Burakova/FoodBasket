@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<products>
+    <product>
+        <price>60</price>
+        <name>potato</name>
+        <category>FruitsAndVegetables</category>
+        <info>This price is for 1 kg of potato.</info>
+    </product>
+    <product>
+        <price>90</price>
+        <name>tomato</name>
+        <category>FruitsAndVegetables</category>
+        <info>This price is for 1 kg of tomato.</info>
+    </product>
+    <product>
+        <price>70</price>
+        <name>cucumber</name>
+        <category>FruitsAndVegetables</category>
+        <info>This price is for 1 kg of cucumber.</info>
+    </product>
+    <product>
+        <price>70</price>
+        <name>apple</name>
+        <category>FruitsAndVegetables</category>
+        <info>This price is for 1 kg of apple.</info>
+    </product>
+    <product>
+        <price>80</price>
+        <name>orange</name>
+        <category>FruitsAndVegetables</category>
+        <info>This price is for 1 kg of orange.</info>
+    </product>
+    <product>
+        <price>65</price>
+        <name>banana</name>
+        <category>FruitsAndVegetables</category>
+        <info>This price is for 1 kg of banana.</info>
+    </product>
+    <product>
+        <price>40</price>
+        <name>black bread</name>
+        <category>Bakery</category>
+        <info>This price is for 1 bread.</info>
+    </product>
+    <product>
+        <price>45</price>
+        <name>baget</name>
+        <category>Bakery</category>
+        <info>This price is for 1 baget.</info>
+    </product>
+    <product>
+        <price>150</price>
+        <name>candy Alenka</name>
+        <category>Confectionery</category>
+        <info>In one packege 500 g of sweets.</info>
+    </product>
+    <product>
+        <price>60</price>
+        <name>rice</name>
+        <category>Grits</category>
+        <info>In one package 500 g of rice.</info>
+    </product>
+    <product>
+        <price>220</price>
+        <name>сhicken</name>
+        <category>Meat</category>
+        <info>This price is for 1 kg of chicken.</info>
+    </product>
+    <product>
+        <price>370</price>
+        <name>pork</name>
+        <category>Meat</category>
+        <info>This price is for 1 kg of pork.</info>
+    </product>
+    <product>
+        <price>520</price>
+        <name>salmon</name>
+        <category>Fish</category>
+        <info>This price is for 1 kg of salmon.</info>
+    </product>
+    <product>
+        <price>60</price>
+        <name>milk</name>
+        <category>Milk</category>
+        <info>In one package 500 ml of milk.</info>
+    </product>
+    <product>
+        <price>55</price>
+        <name>kefir</name>
+        <category>Milk</category>
+        <info>In one package 400 ml of kefir.</info>
+    </product>
+    <product>
+        <price>20</price>
+        <name>karry</name>
+        <category>Spice</category>
+        <info>In one package 50 g of karry.</info>
+    </product>
+    <product>
+        <price>60</price>
+        <name>hercules</name>
+        <category>Grits</category>
+        <info>In one package 500 g of hercules.</info>
+    </product>
+    <product>
+        <price>350</price>
+        <name>beef</name>
+        <category>Meat</category>
+        <info>This price is for 1 kg of beef.</info>
+    </product>
+    <product>
+        <price>80</price>
+        <name>cake with raspberrry</name>
+        <category>Bakery</category>
+        <info>In one package 5 pieces of cake.</info>
+    </product>
+    <product>
+        <price>130</price>
+        <name>blueberry muffins</name>
+        <category>Bakery</category>
+        <info>In one package 7 pieces of muffins.</info>
+    </product>
+    <product>
+        <price>90</price>
+        <name>apple paste</name>
+        <category>Confectionery</category>
+        <info>In one package 1 kg of apple paste.</info>
+    </product>
+    <product>
+        <price>120</price>
+        <name>pink marshmallow</name>
+        <category>Confectionery</category>
+        <info>In one package 500 g of pink marshmallow.</info>
+    </product>
+</products>
