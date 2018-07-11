@@ -1,7 +1,7 @@
 package controller.table;
 
 
-import analysis.json.Parser;
+import analysis.xml.Parser;
 import javafx.scene.control.TableView;
 
 public class NewTableFactory {

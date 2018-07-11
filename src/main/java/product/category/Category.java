@@ -1,7 +1,14 @@
 package product.category;
 
 
-public interface Category {
+public enum Category {
+    Bakery,
+    Confectionery,
+    Fish,
+    FruitsAndVegetables,
+    Grits,
+    Meat,
+    Milk,
+    Spice;
 
-    public String getName();
 }

@@ -1,15 +1,11 @@
 package controller.table;
 
 
-import analysis.json.Parser;
+import analysis.xml.Parser;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.text.Font;
 import product.Product;
 
 public class NewTable implements Table {
