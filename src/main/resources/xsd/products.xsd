@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="" elementFormDefault="qualified">
+    <xsd:element name="products">
+        <xsd:complexType mixed="true">
+            <xsd:sequence>
+                <xsd:element name="product" maxOccurs="unbounded">
+                    <xsd:complexType mixed="true">
+                        <xsd:sequence>
+                            <xsd:element name="price" minOccurs="0" type="xsd:int" />
+                            <xsd:element name="name" minOccurs="0" type="xsd:normalizedString" />
+                            <xsd:element name="category" minOccurs="0" type="xsd:string" />
+                            <xsd:element name="info" minOccurs="0" type="xsd:string" />
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>
