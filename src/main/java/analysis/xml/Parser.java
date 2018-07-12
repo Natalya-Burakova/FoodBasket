@@ -42,13 +42,7 @@ public class Parser {
                     listProduct.add(product);
                 }
             }
-        } catch (ParserConfigurationException e) {
-            System.exit(-1);
-
-        } catch (IOException e) {
-            System.exit(-1);
-
-        } catch (SAXException e) {
+        } catch (Exception e) {
             System.exit(-1);
         }
     }

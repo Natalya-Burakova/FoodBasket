@@ -1,5 +1,6 @@
 package product;
 
+import com.sun.javafx.binding.StringFormatter;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import product.category.*;
@@ -15,6 +16,7 @@ public class Product {
 
     private Category categoryProduct;
 
+
     public Product(String name, Category category, String info, String price) {
         this.name = new SimpleStringProperty(name);
         this.category = new SimpleStringProperty(category.toString());
@@ -26,7 +28,7 @@ public class Product {
     }
 
     public void setPrice(double price) {
-        this.price = new SimpleStringProperty(String.valueOf(price));
+        this.price = new SimpleStringProperty(String.format("%.3f",price).replace(',','.'));
     }
 
     public void setCount(int count) {

@@ -9,19 +9,19 @@ import controller.label.*;
 import controller.table.NewTableFactory;
 import controller.window.NewWindowFactory;
 import controller.window.Window;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
-import jdk.nashorn.internal.runtime.ECMAException;
+import javafx.stage.Modality;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -30,15 +30,14 @@ import product.category.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.io.StringWriter;
+
 
 public class Controller {
     private static final int WINDOW_HEIGHT = 500;
@@ -69,7 +68,10 @@ public class Controller {
         }
     }
 
+    //нажимаем на кнопку next
     public void clickOnNext(ActionEvent actionEvent) {
+        Node source = (Node) actionEvent.getSource();
+        javafx.stage.Window w = source.getScene().getWindow();
         if (txtFieldPath.getCharacters().length()!= 0) {
             lblPrint.setText("");
 
@@ -77,8 +79,10 @@ public class Controller {
             Parser parser = new Parser(xmlObject.getXml());//парсим файл с продуктами
             parser.parce();
 
-            if (CheckValid.validate(xmlObject.getXml(), new File("src/main/resources/xsd/products.xsd")))
+            if (CheckValid.validate(xmlObject.getXml(), new File("src/main/resources/xsd/products.xsd"))) {
+                w.hide();
                 newGeneralWindowWithTable(parser);
+            }
             else
                 lblPrint.setText("Error! The file is corrupt.");
         }
@@ -87,6 +91,7 @@ public class Controller {
     }
 
 
+    //создаем таблицу
     public void newGeneralWindowWithTable(Parser parser){
         Window window = NewWindowFactory.makeWindow(WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -103,17 +108,19 @@ public class Controller {
         // объект корзины
         Basket basket = new Basket();
 
-        Label labelPrice = NewLabelFactory.makeLabel("Price: " + generalPrice +" rub", 25,WINDOW_WIDTH-300, WINDOW_HEIGHT-50).getLable();
+        Label labelPrice = NewLabelFactory.makeLabel("Price: " + String.format("%.3f",generalPrice).replace(',','.') +" rub", 25,WINDOW_WIDTH-300, WINDOW_HEIGHT-50).getLable();
         labelPrice.setTextFill(Color.RED);
 
         Button btnSave = NewButtonFactory.makeButton("Save basket...", WINDOW_WIDTH-550 , WINDOW_HEIGHT-50 ,220, 50).getButton();
 
+        //на кнопку добавить
         btnAdd.setOnAction((event) ->  {
                 if (newTable.getSelectionModel().getSelectedItem() != null) {
-                    newEnterProduct((Product) newTable.getSelectionModel().getSelectedItem(), labelPrice, basket, newTableBasket);
+                    newEnterProduct((Product) newTable.getSelectionModel().getSelectedItem(), labelPrice, basket, newTableBasket, event);
                 }
         });
 
+        //на кнопку удалить
         btnRemove.setOnAction( (event) -> {
                 if (newTableBasket.getSelectionModel().getSelectedItem()!=null) {
                     Product pr = (Product) newTableBasket.getSelectionModel().getSelectedItem();
@@ -122,21 +129,31 @@ public class Controller {
                     newTableBasket.setItems(basket.getListBasket());
                     //вычитываем из общей цены стоимость удаленного продукта
                     generalPrice = generalPrice - Double.parseDouble(pr.getPrice().getValue());
-                    labelPrice.setText("Price: " + generalPrice + " rub");
+                    labelPrice.setText("Price: " + String.format("%.3f",generalPrice).replace(',','.') + " rub");
                 }
         });
 
+        //на кнопку сохранить
         btnSave.setOnAction((event) -> {
-                //если лист не пустой, сохраняем в файл данные, иначе - сообщение с предупреждением
-                if (basket.getListBasket().size() != 0)
-                    saveBasket(window, basket);
-                else {
-                    Window wind = NewWindowFactory.makeWindow(WINDOW_WIDTH/2/2, WINDOW_HEIGHT/2/2);
-                    wind.getStage().setTitle("Warning!");
-                    Label lab = NewLabelFactory.makeLabel("It is impossible to save the file.\nSince the list of products is empty.", 15, 10, 10).getLable();
-                    wind.getAnchorPane().getChildren().addAll(lab);
-                    wind.getStage().show();
-                }
+            saveBasket(window, basket, event);
+        });
+
+        //на крестик
+        window.getStage().setOnCloseRequest((event) ->{
+                event.consume();
+                Window wind = NewWindowFactory.makeWindow(WINDOW_WIDTH/2/2 + 80, WINDOW_HEIGHT/2/2);
+                wind.getStage().setTitle("Exit");
+                wind.getStage().initModality(Modality.WINDOW_MODAL);
+                wind.getStage().initOwner(window.getStage());
+                Label lab = NewLabelFactory.makeLabel("Do you want to save the file before you exit?", 15, 10, 10).getLable();
+                Button btn = NewButtonFactory.makeButton("ok", 150, 80, 70, 40).getButton();
+                btn.setOnAction((eventAction) -> {
+                        saveBasket(window, basket, eventAction);
+                        wind.getStage().close();
+                        window.getStage().close();
+                });
+                wind.getAnchorPane().getChildren().addAll(lab, btn);
+                wind.getStage().show();
         });
 
         window.getAnchorPane().getChildren().addAll(newTable, btnAdd, btnRemove, btnSave, newTableBasket, labelPrice);
@@ -145,11 +162,15 @@ public class Controller {
 
 
     //добавляем новый продукт
-    public void newEnterProduct(Product product, Label labelPrice, Basket basket, TableView newTableBasket) {
-        double price = Double.parseDouble(product.getPrice().getValue());
+    public void newEnterProduct(Product product, Label labelPrice, Basket basket, TableView newTableBasket, ActionEvent actEvent) {
+        Product newProduct = new Product(product.getName().getValue(), product.getCategoryProduct(), product.getInfo().getValue(), product.getPrice().getValue());
+        double price = Double.parseDouble(product.getPrice().getValue().replace(',','.'));
 
         //создаем окно для ввода количества и веса продукта
         Window window = NewWindowFactory.makeWindow(WINDOW_WIDTH/2/2, WINDOW_HEIGHT/2);
+        window.getStage().initModality(Modality.WINDOW_MODAL);
+        window.getStage().initOwner(
+                ((Node)actEvent.getSource()).getScene().getWindow() );
 
         Label labelQuantity = NewLabelFactory.makeLabel("Enter quantity:",  15,10, 0).getLable();
         labelQuantity.setMaxWidth(120);
@@ -169,7 +190,7 @@ public class Controller {
 
         Label lblPrice = NewLabelFactory.makeLabel("", 15,WINDOW_WIDTH/2/2/2,WINDOW_HEIGHT/2 -100).getLable();
         lblPrice.setTextFill(Color.RED);
-        lblPrice.setText("Price: " + product.getPrice().getValue() + " rub");
+        lblPrice.setText("Price: " + newProduct.getPrice().getValue().replace(',','.') + " rub");
 
         window.getAnchorPane().getChildren().addAll(labelQuantity, cb, ok, lblPrice);
 
@@ -188,16 +209,18 @@ public class Controller {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
                 if (newValue != null) {
-                    double wp = 1; //вес по умолчанию
+                    double wp = 1; //вес
                     if (txtWeight.getCharacters().length()!=0) {
                         try {
                             wp = Double.parseDouble(txtWeight.getCharacters().toString());
-                            product.setWeight(wp);//устанавливаем новый вес
+                            if (wp == 0)
+                                wp = 1;
+                            newProduct.setWeight(wp);//устанавливаем новый вес
                         }
                         catch (Exception e){}
                     }
-                    product.setCount(Integer.parseInt(newValue.toString()));//устанавливаем новое количество
-                    lblPrice.setText("Price: " + getPrice(price, Integer.parseInt(newValue.toString()), wp) + " rub");//выводим новую цену
+                    newProduct.setCount(Integer.parseInt(newValue.toString()));//устанавливаем новое количество
+                    lblPrice.setText("Price: " + String.format("%.3f",getPrice(price, Integer.parseInt(newValue.toString()), wp)).replace(',','.') + " rub");//выводим новую цену
                 }
             }
         };
@@ -210,28 +233,43 @@ public class Controller {
                 double w = 1;
                 try {
                     w = Double.parseDouble(newValue);
-                    product.setWeight(w);//устанавливаем новый вес
+                    if (w == 0)
+                        w = 1;
+                    newProduct.setWeight(w);//устанавливаем новый вес
                 }
                 catch (Exception e) {}
                 if (cb.getSelectionModel().getSelectedItem() != null) {
                     c = Integer.parseInt(cb.getSelectionModel().getSelectedItem().toString());
-                    product.setCount(c);//устанавливаем новое количество
+                    newProduct.setCount(c);//устанавливаем новое количество
                 }
-                lblPrice.setText("Price: " + getPrice(price, c, w) + " rub");//выводим новую цену
+                lblPrice.setText("Price: " + String.format("%.3f",getPrice(price, c, w)).replace(',','.') + " rub");//выводим новую цену
             }
         });
 
+
+        //ограничение на ввод только цифр в текстовое поле
+        txtWeight.textProperty().addListener((observable, oldValue,newValue) -> {
+                if (!newValue.matches("^\\d+(?:[\\.])?\\d*$")) {
+                    Platform.runLater(() -> {
+                        txtWeight.setText("");
+                    });
+                }
+        });
+
+
+        //нажали на кнопку ок
         ok.setOnAction((event) -> {
                 double pr = Double.parseDouble(product.getPrice().getValue());
                 if (lblPrice.getText().length()!=0) {
-                    pr =  Double.parseDouble(lblPrice.getText().substring(7, lblPrice.getText().length()-4));//новая цена
-                    product.setPrice(pr);//устанавливаем новую цену продукту
-                    generalPrice = generalPrice + pr; //добавляем к общей цене, цену продукты
+                    String priceProduct = lblPrice.getText().replace(',', '.');
+                    pr = Double.parseDouble(priceProduct.substring(7, priceProduct.length() - 4));//новая цена
                 }
+                newProduct.setPrice(pr);//устанавливаем новую цену продукту
+                generalPrice = generalPrice + pr; //добавляем к общей цене, цену продукты
 
-                labelPrice.setText("Price: " + generalPrice +" rub"); //выводим общую цену
+                labelPrice.setText("Price: " + String.format("%.3f",generalPrice).replace(',','.') +" rub"); //выводим общую цену
 
-                basket.addBasket(product); //добавляем в корзину новый продукт с введеными параметрами
+                basket.addBasket(newProduct); //добавляем в корзину новый продукт с введеными параметрами
                 newTableBasket.setItems(basket.getListBasket()); // добавляем в таблицу саму корзину
 
                 window.getStage().close();//закрываем всплывающее окно
@@ -240,60 +278,80 @@ public class Controller {
     }
 
 
-
+    //посчитать цену
     public double getPrice(double price, int count, double weight) {
         return count*(price*weight);
     }
 
-    public void saveBasket(Window window, Basket basket){
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Document");
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XmlObject files (*.xml)", "*.xml");//Расширение
-        fileChooser.getExtensionFilters().add(extFilter);
-        File fileUser = fileChooser.showSaveDialog(window.getStage());
-        if (fileUser != null) {
-            try (BufferedWriter writer = new BufferedWriter( new FileWriter(fileUser));)
-            {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                Document doc = factory.newDocumentBuilder().newDocument();
+    //сохраняем корзину
+    public void saveBasket(Window window, Basket basket, ActionEvent actEvent) {
+        if (basket.getListBasket().size() != 0) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Document");
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XmlObject files (*.xml)", "*.xml");//Расширение
+            fileChooser.getExtensionFilters().add(extFilter);
+            File fileUser = fileChooser.showSaveDialog(window.getStage());
+            if (fileUser != null) {
+                try {
+                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                    Document doc = factory.newDocumentBuilder().newDocument();
 
-                Element root = doc.createElement("products");
-                doc.appendChild(root);
+                    Element root = doc.createElement("products");
+                    doc.appendChild(root);
 
-                ObservableList products = basket.getListBasket();
-                for (int i = 0; i<products.size(); i++) {
-                    Product p =  (Product) products.get(i);
-                    Element item1 = doc.createElement("product");
-                    item1.setAttribute("count", p.getCount().getValue());
-                    item1.setAttribute("name", p.getName().getValue());
-                    item1.setAttribute("price", p.getPrice().getValue());
-                    item1.setAttribute("weignt", p.getWeight().getValue());
-                    root.appendChild(item1);
+                    ObservableList products = basket.getListBasket();
+                    for (int i = 0; i < products.size(); i++) {
+                        Product p = (Product) products.get(i);
+                        Element item1 = doc.createElement("product");
+                        item1.setAttribute("count", p.getCount().getValue());
+                        item1.setAttribute("name", p.getName().getValue());
+                        item1.setAttribute("price", p.getPrice().getValue());
+                        item1.setAttribute("weignt", p.getWeight().getValue());
+                        root.appendChild(item1);
+                    }
+                    Element item = doc.createElement("generalPrice");
+                    item.setAttribute("value", String.format("%.3f",generalPrice).replace(',','.'));
+                    root.appendChild(item);
+
+                    Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                    DOMSource source = new DOMSource(doc);
+                    StreamResult result = new StreamResult(new StringWriter());
+                    transformer.transform(source, result);
+                    String strObject = result.getWriter().toString();
+
+                    if (CheckValid.validate(strObject, new File("src/main/resources/xsd/basket.xsd"))) {
+                        transformer.transform(new DOMSource(doc), new StreamResult(fileUser));
+                    } else
+                        throw new Exception();
+
+                } catch (Exception e) {
+                    Window wind = NewWindowFactory.makeWindow(WINDOW_WIDTH / 2 / 2, WINDOW_HEIGHT / 2 / 2);
+                    wind.getStage().setTitle("Warning!");
+                    wind.getStage().initModality(Modality.WINDOW_MODAL);
+                    wind.getStage().initOwner(
+                            ((Node) actEvent.getSource()).getScene().getWindow());
+                    Label lab = NewLabelFactory.makeLabel("The file was not saved.\nTry again?", 15, 10, 10).getLable();
+                    Button btn = NewButtonFactory.makeButton("ok", 100, 80, 70, 40).getButton();
+                    btn.setOnAction((event) -> {
+                        wind.getStage().close();
+                        saveBasket(window, basket, actEvent);
+                    });
+                    wind.getAnchorPane().getChildren().addAll(lab, btn);
+                    wind.getStage().show();
                 }
 
-                Element item = doc.createElement("generalPrice");
-                item.setAttribute("value", String.valueOf(generalPrice));
-                root.appendChild(item);
-
-                Transformer transformer = TransformerFactory.newInstance().newTransformer();
-                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                transformer.transform(new DOMSource(doc), new StreamResult(fileUser));
-
-                if (CheckValid.validate(fileUser, new File("src/main/resources/xsd/basket.xsd")));
-                else
-                    throw new SAXException();
-
-            } catch (Exception e) {
-                Window wind = NewWindowFactory.makeWindow(WINDOW_WIDTH/2/2, WINDOW_HEIGHT/2/2);
-                wind.getStage().setTitle("Warning!");
-                Label lab = NewLabelFactory.makeLabel("The file was not saved.\nTry again?", 15, 10, 10).getLable();
-                Button btn = NewButtonFactory.makeButton("ok", 100, 80,70,40).getButton();
-                btn.setOnAction((event)-> { wind.getStage().close(); saveBasket(window, basket);});
-                wind.getAnchorPane().getChildren().addAll(lab, btn);
-                wind.getStage().show();
             }
         }
-
+        else {
+                Window wind = NewWindowFactory.makeWindow(WINDOW_WIDTH/2/2, WINDOW_HEIGHT/2/2);
+                wind.getStage().setTitle("Warning!");
+                wind.getStage().initModality(Modality.WINDOW_MODAL);
+                wind.getStage().initOwner(window.getStage());
+                Label lab = NewLabelFactory.makeLabel("It is impossible to save the file.\nSince the list of products is empty.", 15, 10, 10).getLable();
+                wind.getAnchorPane().getChildren().addAll(lab);
+                wind.getStage().show();
+        }
     }
 
 
