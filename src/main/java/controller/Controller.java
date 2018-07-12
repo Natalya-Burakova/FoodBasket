@@ -22,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
+import javafx.util.StringConverter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -37,6 +38,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.StringWriter;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 
 public class Controller {
@@ -108,7 +111,7 @@ public class Controller {
         // объект корзины
         Basket basket = new Basket();
 
-        Label labelPrice = NewLabelFactory.makeLabel("Price: " + String.format("%.3f",generalPrice).replace(',','.') +" rub", 25,WINDOW_WIDTH-300, WINDOW_HEIGHT-50).getLable();
+        Label labelPrice = NewLabelFactory.makeLabel("Price: " + String.format("%.2f",generalPrice).replace(',','.') +" rub", 25,WINDOW_WIDTH-300, WINDOW_HEIGHT-50).getLable();
         labelPrice.setTextFill(Color.RED);
 
         Button btnSave = NewButtonFactory.makeButton("Save basket...", WINDOW_WIDTH-550 , WINDOW_HEIGHT-50 ,220, 50).getButton();
@@ -129,7 +132,7 @@ public class Controller {
                     newTableBasket.setItems(basket.getListBasket());
                     //вычитываем из общей цены стоимость удаленного продукта
                     generalPrice = generalPrice - Double.parseDouble(pr.getPrice().getValue());
-                    labelPrice.setText("Price: " + String.format("%.3f",generalPrice).replace(',','.') + " rub");
+                    labelPrice.setText("Price: " + String.format("%.2f",generalPrice).replace(',','.') + " rub");
                 }
         });
 
@@ -180,19 +183,19 @@ public class Controller {
         cb.setLayoutX(labelQuantity.getLayoutX()+labelQuantity.getMaxWidth());
         cb.setValue("1");
 
-        Label labelWeight = NewLabelFactory.makeLabel("Enter weight (kg):", 15,10, labelQuantity.getMaxHeight()).getLable();
+        Label labelWeight = NewLabelFactory.makeLabel("Enter weight(kg):", 15,10, 0).getLable();
 
         Button ok =  NewButtonFactory.makeButton("ok", WINDOW_WIDTH/2/2/2-30, WINDOW_HEIGHT/2-50, 60 ,50).getButton();
 
         TextField txtWeight = new TextField();
-        txtWeight.setLayoutX(labelQuantity.getLayoutX() + labelQuantity.getMaxWidth());
-        txtWeight.setLayoutY(labelQuantity.getMaxHeight());
+        txtWeight.setMaxWidth(70);
+        txtWeight.setLayoutX(labelQuantity.getLayoutX()+labelQuantity.getMaxWidth() + 10);
 
         Label lblPrice = NewLabelFactory.makeLabel("", 15,WINDOW_WIDTH/2/2/2,WINDOW_HEIGHT/2 -100).getLable();
         lblPrice.setTextFill(Color.RED);
         lblPrice.setText("Price: " + newProduct.getPrice().getValue().replace(',','.') + " rub");
 
-        window.getAnchorPane().getChildren().addAll(labelQuantity, cb, ok, lblPrice);
+        window.getAnchorPane().getChildren().addAll(ok, lblPrice);
 
         //выбираем какие поля для текущего продукта стоит/не стоит отображать
         Category category = product.getCategoryProduct();
@@ -200,7 +203,8 @@ public class Controller {
                 || category == Category.Confectionery
                 || category == Category.Grits
                 || category == Category.Milk
-                || category == Category.Spice);
+                || category == Category.Spice)
+            window.getAnchorPane().getChildren().addAll(labelQuantity, cb);
         else
             window.getAnchorPane().getChildren().addAll(labelWeight, txtWeight);
 
@@ -209,18 +213,9 @@ public class Controller {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
                 if (newValue != null) {
-                    double wp = 1; //вес
-                    if (txtWeight.getCharacters().length()!=0) {
-                        try {
-                            wp = Double.parseDouble(txtWeight.getCharacters().toString());
-                            if (wp == 0)
-                                wp = 1;
-                            newProduct.setWeight(wp);//устанавливаем новый вес
-                        }
-                        catch (Exception e){}
-                    }
-                    newProduct.setCount(Integer.parseInt(newValue.toString()));//устанавливаем новое количество
-                    lblPrice.setText("Price: " + String.format("%.3f",getPrice(price, Integer.parseInt(newValue.toString()), wp)).replace(',','.') + " rub");//выводим новую цену
+                    newProduct.setCount(String.valueOf(newValue));//устанавливаем новое количество
+                    newProduct.setWeight("");
+                    lblPrice.setText("Price: " + String.format("%.2f",getPrice(price, Integer.parseInt(newValue.toString()), 1)).replace(',','.') + " rub");//выводим новую цену
                 }
             }
         };
@@ -229,29 +224,26 @@ public class Controller {
         //если ввели в текстовое поле новое значение, обновляем цену
         txtWeight.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue!= null) {
-                int c = 1;
                 double w = 1;
-                try {
+                try{
                     w = Double.parseDouble(newValue);
-                    if (w == 0)
-                        w = 1;
-                    newProduct.setWeight(w);//устанавливаем новый вес
+                    newProduct.setWeight(String.format("%.2f",w).replace(',','.'));//устанавливаем новый вес
+                    newProduct.setCount("");
+                    lblPrice.setText("Price: " + String.format("%.2f",getPrice(price, 1, w)).replace(',','.') + " rub");//выводим новую цену
                 }
                 catch (Exception e) {}
-                if (cb.getSelectionModel().getSelectedItem() != null) {
-                    c = Integer.parseInt(cb.getSelectionModel().getSelectedItem().toString());
-                    newProduct.setCount(c);//устанавливаем новое количество
-                }
-                lblPrice.setText("Price: " + String.format("%.3f",getPrice(price, c, w)).replace(',','.') + " rub");//выводим новую цену
             }
         });
 
 
         //ограничение на ввод только цифр в текстовое поле
         txtWeight.textProperty().addListener((observable, oldValue,newValue) -> {
-                if (!newValue.matches("^\\d+(?:[\\.])?\\d*$")) {
+                if (!newValue.matches("^\\d+(?:[\\.])?\\d*$") && newValue.length()!=0) {
                     Platform.runLater(() -> {
-                        txtWeight.setText("");
+                        try {
+                            txtWeight.setText("");
+                        }
+                        catch (Exception e){}
                     });
                 }
         });
@@ -264,11 +256,10 @@ public class Controller {
                     String priceProduct = lblPrice.getText().replace(',', '.');
                     pr = Double.parseDouble(priceProduct.substring(7, priceProduct.length() - 4));//новая цена
                 }
+
                 newProduct.setPrice(pr);//устанавливаем новую цену продукту
                 generalPrice = generalPrice + pr; //добавляем к общей цене, цену продукты
-
-                labelPrice.setText("Price: " + String.format("%.3f",generalPrice).replace(',','.') +" rub"); //выводим общую цену
-
+                labelPrice.setText("Price: " + String.format("%.2f",generalPrice).replace(',','.') +" rub"); //выводим общую цену
                 basket.addBasket(newProduct); //добавляем в корзину новый продукт с введеными параметрами
                 newTableBasket.setItems(basket.getListBasket()); // добавляем в таблицу саму корзину
 
@@ -310,7 +301,7 @@ public class Controller {
                         root.appendChild(item1);
                     }
                     Element item = doc.createElement("generalPrice");
-                    item.setAttribute("value", String.format("%.3f",generalPrice).replace(',','.'));
+                    item.setAttribute("value", String.format("%.2f",generalPrice).replace(',','.'));
                     root.appendChild(item);
 
                     Transformer transformer = TransformerFactory.newInstance().newTransformer();

@@ -23,20 +23,20 @@ public class Product {
         this.categoryProduct = category;
         this.info = new SimpleStringProperty(info);
         this.price = new SimpleStringProperty(price);
-        this.count = new SimpleStringProperty(String.valueOf(1));
-        this.weight = new SimpleStringProperty(String.valueOf(1));
+        this.count = new SimpleStringProperty();
+        this.weight = new SimpleStringProperty();
     }
 
     public void setPrice(double price) {
-        this.price = new SimpleStringProperty(String.format("%.3f",price).replace(',','.'));
+        this.price = new SimpleStringProperty(String.format("%.2f",price).replace(',','.'));
     }
 
-    public void setCount(int count) {
-        this.count = new SimpleStringProperty(String.valueOf(count));
+    public void setCount(String count) {
+        this.count = new SimpleStringProperty(count);
     }
 
-    public void setWeight(double weight) {
-        this.weight = new SimpleStringProperty(String.valueOf(weight));
+    public void setWeight(String weight) {
+        this.weight = new SimpleStringProperty(weight);
     }
 
     public Category getCategoryProduct() { return categoryProduct; }
